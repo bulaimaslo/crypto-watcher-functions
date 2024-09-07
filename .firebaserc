@@ -1,5 +1,12 @@
 {
   "projects": {},
   "targets": {},
-  "etags": {}
+  "etags": {
+    "cryptowatcher-bf63e": {
+      "extensionInstances": {
+        "moralis-streams": "019a8788d85a3c25cd9775ed065dbd9f1da367b295b9d50c7863dc4614026a57"
+      }
+    }
+  },
+  "dataconnectEmulatorConfig": {}
 }

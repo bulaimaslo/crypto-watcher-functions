@@ -1,28 +1,56 @@
 import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
 import { Transaction, Erc20TransferEvent } from './types';
 
-const transactionCollectionName = 'Transaction';
-const erc20TransferCollectionName = 'Erc20Transfer';
+const db = admin.firestore();
 
-export const onTransactionWrite = functions.firestore
-    .document(`moralis/txs/${transactionCollectionName}/{id}`)
-    .onWrite(async (change) => {
-        const transaction = change.after.data() as Transaction;
+export const onWebhookReceived = functions.https.onRequest(async (req, res) => {
+  const webhookData = req.body;
+  // Assuming the tag is in the format 'userId_streamType'
+  const userId = webhookData.tag.split('_')[0]; 
 
-        if (transaction && transaction.confirmed) {
-            functions.logger.log(
-                `Transaction ${transaction.value} wei from ${transaction.fromAddress} to ${transaction.toAddress}`,
-            );
-            // Additional logic to notify the user or perform other actions
-        }
+  if (webhookData.confirmed) {
+    if (webhookData.erc20Transfers) {
+      await storeErc20Transfers(userId, webhookData.erc20Transfers);
+    }
+    if (webhookData.txs) {
+      await storeTransactions(userId, webhookData.txs);
+    }
+  }
+
+  res.status(200).send('Webhook received');
+});
+
+async function storeErc20Transfers(userId: string, transfers: Erc20TransferEvent[]) {
+  const batch = db.batch();
+  transfers.forEach((transfer) => {
+    const docRef = db.collection(`users/${userId}/erc20Transfers`).doc();
+    batch.set(docRef, {
+      ...transfer,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+  });
+  await batch.commit();
+}
 
-export const onErc20TransferWrite = functions.firestore
-    .document(`moralis/events/${erc20TransferCollectionName}/{id}`)
-    .onWrite(async (change) => {
-        const transfer = change.after.data() as Erc20TransferEvent;
-
-        if (transfer && transfer.confirmed) {
-            functions.logger.log(`Erc20 transfer ${transfer.value} from ${transfer.from} to ${transfer.to}`);
-        }
+async function storeTransactions(userId: string, transactions: Transaction[]) {
+  const batch = db.batch();
+  transactions.forEach((transaction) => {
+    const docRef = db.collection(`users/${userId}/transactions`).doc();
+    batch.set(docRef, {
+      ...transaction,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+  });
+  await batch.commit();
+}
+export const fetchRecentEvents = async (data: { userId: string; limit: number }) => {
+    const { userId, limit } = data;
+    const eventType = 'erc20Transfers';
+    const snapshot = await db.collection(`users/${userId}/${eventType}`)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .get();
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};

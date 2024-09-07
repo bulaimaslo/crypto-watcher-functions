@@ -3,3 +3,4 @@ lib/
 .firebase/
 *.env
 *-debug.log
+functions/.runtimeconfig.json

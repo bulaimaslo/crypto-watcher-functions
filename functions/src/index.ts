@@ -1,17 +1,35 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import Moralis from 'moralis';
 import { ipRateLimiterMiddleware } from './rateLimiter';
-import { onTransactionWrite, onErc20TransferWrite } from './webhookHandlers';
-import { getBlock, getBlockTimestamp } from './apiProxies';
+import { onWebhookReceived, fetchRecentEvents } from './webhookHandlers';
+import { createERC20TransferStream, deleteStream } from './streamManagement';
+import {
+  getWalletPnLSummary,
+  getWalletPnLBreakdown,
+  getTopProfitableWalletsByToken
+} from './apiProxies';
+
 
 admin.initializeApp();
+
+const moralisApiKey = functions.config().moralis.api_key;
+Moralis.start({ apiKey: moralisApiKey });
 
 const firestore = admin.firestore();
 const ipRateLimiter = ipRateLimiterMiddleware(firestore);
 
-// Webhook handlers
-export { onTransactionWrite, onErc20TransferWrite };
+// Webhook handler
+export const webhookHandler = onWebhookReceived;
 
-// API proxies with rate limiting
-export const getBlockProxy = functions.https.onCall(ipRateLimiter(getBlock));
-export const getBlockTimestampProxy = functions.https.onCall(ipRateLimiter(getBlockTimestamp));
+// Stream management
+export const createStreamProxy = functions.https.onCall(ipRateLimiter(createERC20TransferStream));
+export const deleteStreamProxy = functions.https.onCall(ipRateLimiter(deleteStream));
+
+// Event fetching
+export const fetchRecentEventsProxy = functions.https.onCall(ipRateLimiter(fetchRecentEvents));
+
+// API proxies with rate limiting and Moralis initialization
+export const getWalletPnLSummaryProxy = functions.https.onCall(ipRateLimiter(getWalletPnLSummary));
+export const getWalletPnLBreakdownProxy = functions.https.onCall(ipRateLimiter(getWalletPnLBreakdown));
+export const getTopProfitableWalletsByTokenProxy = functions.https.onCall(ipRateLimiter(getTopProfitableWalletsByToken));

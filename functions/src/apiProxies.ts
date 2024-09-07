@@ -1,20 +1,31 @@
 import Moralis from 'moralis';
-import { EvmChain } from "@moralisweb3/common-evm-utils";
-import { GetBlockData, GetBlockTimestampData } from './types';
+import * as types from './types';
 
 
-export const getBlock = async (data: GetBlockData) => {
-    const response = await Moralis.EvmApi.block.getBlock({
+export const getWalletPnLSummary = async (data: types.GetWalletPnLSummaryData) => {
+      const response = await Moralis.EvmApi.wallets.getWalletProfitabilitySummary({
         chain: data.chain,
-        blockNumberOrHash: data.blockNumberOrHash,
-    });
-    return response ? response.toJSON() : null;
-};
+        address: data.address,
+        days: data.days || 'all',
+      });
+      return response ? response.toJSON() : null;
+  };
+  
+  export const getWalletPnLBreakdown = async (data: types.GetWalletPnLBreakdownData) => {
+      const response = await Moralis.EvmApi.wallets.getWalletProfitability({
+        chain: data.chain,
+        address: data.address,
+        days: data.days || 'all',
+        tokenAddresses: data.token_addresses,
+      });
+      return response ? response.toJSON() : null;
+  };
 
-export const getBlockTimestamp = async (data: GetBlockTimestampData) => {
-    const response = await Moralis.EvmApi.block.getBlock({
-        chain: EvmChain.ETHEREUM,
-        blockNumberOrHash: data.blockNumberOrHash,
-    });
-    return response ? response.toJSON() : null;
-};
+  export const getTopProfitableWalletsByToken = async (data: types.GetTopProfitableWalletsByTokenData) => {
+      const response = await Moralis.EvmApi.token.getTopProfitableWalletPerToken({
+        chain: data.chain,
+        address: data.address,
+        days: data.days || 'all',
+      });
+      return response ? response.toJSON() : null;
+  };

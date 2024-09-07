@@ -14,11 +14,28 @@ export interface Erc20TransferEvent {
   // and more...
 }
 
-export interface GetBlockTimestampData {
-  blockNumberOrHash: string;
+export interface GetWalletPnLSummaryData {
+  address: string;
+  chain: string;
+  days?: string;
 }
 
-export interface GetBlockData {
+export interface GetWalletPnLBreakdownData {
+  address: string;
   chain: string;
-  blockNumberOrHash: string;
+  days?: string;
+  token_addresses?: string[];
+}
+
+export interface GetTopProfitableWalletsByTokenData {
+  address: string;
+  chain: string;
+  days?: string;
+}
+
+export interface CreateERC20TransferStreamData {
+  webhookUrl: string;
+  description: string;
+  tag: string;
+  chainIds: string[];
 }
