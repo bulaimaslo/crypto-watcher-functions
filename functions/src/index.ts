@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+admin.initializeApp();
+
 import Moralis from 'moralis';
 import { ipRateLimiterMiddleware } from './rateLimiter';
 import { onWebhookReceived, fetchRecentEvents } from './webhookHandlers';
@@ -9,9 +10,8 @@ import {
   getWalletPnLBreakdown,
   getTopProfitableWalletsByToken
 } from './apiProxies';
+import * as functions from 'firebase-functions';
 
-
-admin.initializeApp();
 
 const moralisApiKey = functions.config().moralis.api_key;
 Moralis.start({ apiKey: moralisApiKey });
