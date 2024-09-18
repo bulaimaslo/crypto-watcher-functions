@@ -33,9 +33,3 @@ export interface GetTopProfitableWalletsByTokenData {
   days?: string;
 }
 
-export interface CreateERC20TransferStreamData {
-  webhookUrl: string;
-  description: string;
-  tag: string;
-  chainIds: string[];
-}
